@@ -6,20 +6,31 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @foreach ($products as $product)
-                <div class="bg-white shadow rounded-lg p-6 space-y-4">
+                <div
+                    class="bg-white shadow rounded-lg p-6 space-y-4 
+                                            {{ $product->approval && $product->total_stock < $product->approval->minimum_quantity ? 'border-2 border-red-400' : '' }}">
+
                     @if ($product->image_url)
                         <div class="flex justify-center">
                             <img src="{{ $product->image_url }}" alt="{{ $product->product_name }}"
                                 class="w-full max-h-48 object-cover rounded border border-gray-200">
                         </div>
                     @endif
+
                     <div class="flex justify-between items-start">
                         <div>
                             <h2 class="text-xl font-semibold text-gray-800">{{ $product->product_name }}</h2>
                             <p class="text-sm text-gray-500">Harga Beli: Rp
                                 {{ number_format($product->purchase_price, 0, ',', '.') }}
                             </p>
+                            <p class="text-sm text-gray-500">Stok: <span
+                                    class="font-semibold text-gray-700">{{ $product->total_stock }}</span></p>
+
+                            @if ($product->approval && $product->total_stock < $product->approval->minimum_quantity)
+                                <p class="text-sm text-red-600 font-semibold">⚠️ Stok kurang dari minimum pembelian!</p>
+                            @endif
                         </div>
+
                         @if ($product->approval && $product->approval->is_approved)
                             <span class="text-green-600 font-semibold text-sm">Approved</span>
                         @else
@@ -27,7 +38,6 @@
                         @endif
                     </div>
 
-                    <!-- Forms -->
                     @if ($product->approval)
                         <div class="space-y-3">
                             <form action="{{ route('admin.products.updatePrice', $product->approval->id) }}" method="POST"
@@ -60,7 +70,6 @@
                         </div>
                     @endif
 
-                    <!-- Approval & Actions -->
                     <div class="flex flex-wrap gap-2 pt-2">
                         @if (!$product->approval)
                             <form action="{{ route('admin.products.createApproval', $product->id) }}" method="POST">
@@ -84,6 +93,17 @@
                         @endif
 
                         @if ($product->approval && $product->approval->is_approved)
+                            <form action="{{ route('admin.products.toggleCustomForm', $product->approval->id) }}" method="POST"
+                                class="flex gap-2 items-center">
+                                @csrf
+                                <label class="w-32 text-sm">Form Kustom</label>
+                                <select name="is_custom_form" onchange="this.form.submit()"
+                                    class="border rounded px-3 py-2 w-28 bg-white text-gray-700">
+                                    <option value="0" {{ !$product->approval->is_custom_form ? 'selected' : '' }}>Nonaktif</option>
+                                    <option value="1" {{ $product->approval->is_custom_form ? 'selected' : '' }}>Aktif</option>
+                                </select>
+                            </form>
+
                             <a href="{{ route('admin.custom-forms.index', $product->id) }}"
                                 class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm">Form</a>
                             <a href="{{ route('admin.discount-tiers.index', $product->id) }}"
@@ -94,4 +114,23 @@
             @endforeach
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @foreach ($products as $product)
+            @if ($product->approval && $product->total_stock < $product->approval->minimum_quantity)
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stok Rendah!',
+                    text: 'Stok {{ $product->product_name }} hanya {{ $product->total_stock }}, minimum beli {{ $product->approval->minimum_quantity }}.',
+                    toast: true,
+                    position: 'top-end',
+                    timer: 5000,
+                    showConfirmButton: false
+                });
+            @endif
+        @endforeach
+    </script>
 @endsection

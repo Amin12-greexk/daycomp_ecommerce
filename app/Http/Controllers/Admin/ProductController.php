@@ -11,8 +11,13 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = ProductApproval::with('product')->get();
-        $products = Product::with('approval')->get();
+        $products = Product::with(['approval', 'stocks'])->get();
+
+        // Tambahkan total_stock ke setiap produk
+        foreach ($products as $product) {
+            $product->total_stock = $product->stocks->sum('quantity');
+        }
+
         return view('admin.products.index', compact('products'));
     }
 
@@ -35,81 +40,81 @@ class ProductController extends Controller
     }
 
     public function approval()
-{
-    return $this->hasOne(ProductApproval::class, 'product_id');
-}
-
-public function createApproval($id)
-{
-    $product = Product::findOrFail($id);
-
-    // Check if already exists
-    $existing = ProductApproval::where('product_id', $id)->first();
-    if ($existing) {
-        return redirect()->back()->with('error', 'Product already exists in approval list.');
+    {
+        return $this->hasOne(ProductApproval::class, 'product_id');
     }
 
-    ProductApproval::create([
-        'product_id' => $id,
-        'is_approved' => 0,
-        'is_custom_form' => 0,
-        'custom_price' => $product->product_price, // optional
-    ]);
+    public function createApproval($id)
+    {
+        $product = Product::findOrFail($id);
 
-    return redirect()->back()->with('success', 'Product added to approval list.');
-}
+        // Check if already exists
+        $existing = ProductApproval::where('product_id', $id)->first();
+        if ($existing) {
+            return redirect()->back()->with('error', 'Product already exists in approval list.');
+        }
 
-public function updatePrice(Request $request, $approval_id)
-{
-    $request->validate([
-        'custom_price' => 'required|numeric|min:0',
-    ]);
+        ProductApproval::create([
+            'product_id' => $id,
+            'is_approved' => 0,
+            'is_custom_form' => 0,
+            'custom_price' => $product->product_price, // optional
+        ]);
 
-    $approval = ProductApproval::findOrFail($approval_id);
+        return redirect()->back()->with('success', 'Product added to approval list.');
+    }
 
-    $approval->custom_price = $request->custom_price;
-    $approval->save();
+    public function updatePrice(Request $request, $approval_id)
+    {
+        $request->validate([
+            'custom_price' => 'required|numeric|min:0',
+        ]);
 
-    return redirect()->back()->with('success', 'Custom price updated successfully.');
-}
+        $approval = ProductApproval::findOrFail($approval_id);
 
-public function toggleCustomForm($approval_id)
-{
-    $approval = \App\Models\ProductApproval::findOrFail($approval_id);
+        $approval->custom_price = $request->custom_price;
+        $approval->save();
 
-    $approval->is_custom_form = !$approval->is_custom_form; // toggle 0 to 1 or 1 to 0
-    $approval->save();
+        return redirect()->back()->with('success', 'Custom price updated successfully.');
+    }
 
-    return redirect()->back()->with('success', 'Custom form status updated.');
-}
+    public function toggleCustomForm($approval_id)
+    {
+        $approval = \App\Models\ProductApproval::findOrFail($approval_id);
 
-public function updateShortDescription(Request $request, $id)
-{
-    $request->validate([
-        'short_description' => 'required|string|max:255',
-    ]);
+        $approval->is_custom_form = !$approval->is_custom_form; // toggle 0 to 1 or 1 to 0
+        $approval->save();
 
-    $approval = \App\Models\ProductApproval::findOrFail($id);
+        return redirect()->back()->with('success', 'Custom form status updated.');
+    }
 
-    $approval->update([
-        'short_description' => $request->short_description,
-    ]);
+    public function updateShortDescription(Request $request, $id)
+    {
+        $request->validate([
+            'short_description' => 'required|string|max:255',
+        ]);
 
-    return redirect()->back()->with('success', 'Short Description updated successfully.');
-}
+        $approval = \App\Models\ProductApproval::findOrFail($id);
 
-public function updateMinimumQuantity(Request $request, $id)
-{
-    $request->validate([
-        'minimum_quantity' => 'required|integer|min:1',
-    ]);
+        $approval->update([
+            'short_description' => $request->short_description,
+        ]);
 
-    $approval = ProductApproval::findOrFail($id);
-    $approval->minimum_quantity = $request->minimum_quantity;
-    $approval->save();
+        return redirect()->back()->with('success', 'Short Description updated successfully.');
+    }
 
-    return redirect()->back()->with('success', 'Minimum quantity updated.');
-}
+    public function updateMinimumQuantity(Request $request, $id)
+    {
+        $request->validate([
+            'minimum_quantity' => 'required|integer|min:1',
+        ]);
+
+        $approval = ProductApproval::findOrFail($id);
+        $approval->minimum_quantity = $request->minimum_quantity;
+        $approval->save();
+
+        return redirect()->back()->with('success', 'Minimum quantity updated.');
+    }
 
 
 

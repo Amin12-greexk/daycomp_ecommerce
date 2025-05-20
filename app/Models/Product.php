@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request; 
+use Illuminate\Http\Request;
 
 
 class Product extends Model
@@ -28,7 +28,7 @@ class Product extends Model
         return $this->hasOne(ProductApproval::class, 'product_id');
     }
 
-        public function customForms()
+    public function customForms()
     {
         return $this->hasMany(CustomForm::class, 'product_id');
     }
@@ -51,5 +51,9 @@ class Product extends Model
         return $this->hasMany(DiscountTier::class, 'product_id');
     }
 
+    public function stocks()
+    {
+        return $this->hasMany(\App\Models\Stock::class, 'product_id');
+    }
 
 }

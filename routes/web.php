@@ -27,11 +27,17 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/products/{approval_id}/update-price', [ProductController::class, 'updatePrice'])->name('admin.products.updatePrice');
     Route::get('/products/{product}/custom-forms', [CustomFormController::class, 'index'])->name('admin.custom-forms.index');
     Route::get('/products/{product}/custom-forms/create', [CustomFormController::class, 'create'])->name('admin.custom-forms.create');
+    Route::put('/products/{approval_id}/toggle-custom-form', [ProductController::class, 'toggleCustomForm'])->name('admin.products.toggleCustomForm');
     Route::post('/products/{product}/custom-forms', [CustomFormController::class, 'store'])->name('admin.custom-forms.store');
     Route::get('/custom-forms/{id}/edit', [CustomFormController::class, 'edit'])->name('admin.custom-forms.edit');
     Route::put('/custom-forms/{id}', [CustomFormController::class, 'update'])->name('admin.custom-forms.update');
     Route::delete('/custom-forms/{id}', [CustomFormController::class, 'destroy'])->name('admin.custom-forms.destroy');
+    Route::post('/checkout/cache', [CheckoutController::class, 'cacheForm'])->name('checkout.cache');
+    Route::get('/orders/{order}/resi', [OrderController::class, 'Resi'])->name('orders.Resi');
+    Route::get('/orders/{order}/custom-form', [OrderController::class, 'downloadCustomForm'])->name('orders.downloadCustomForm');
+
 });
+Route::post('/checkout/cache', [CheckoutController::class, 'cacheForm'])->name('checkout.cache');
 Route::post('/products/{approval_id}/toggle-custom-form', [ProductController::class, 'toggleCustomForm'])->name('admin.products.toggleCustomForm');
 Route::post('/products/{approval_id}/update-minimum-quantity', [ProductController::class, 'updateMinimumQuantity'])->name('admin.products.updateMinimumQuantity');
 Route::get('/products/{product}/discount-tiers', [DiscountTierController::class, 'index'])->name('admin.discount-tiers.index');
@@ -104,5 +110,11 @@ Route::get('/api/years', function () {
         ->pluck('year');
 });
 
+Route::get('/test-upload', function () {
+    return view('test-upload');
+});
+
+// Handle upload ke Sanity
+Route::post('/test-upload', [\App\Http\Controllers\Customer\CheckoutController::class, 'testUpload'])->name('test.upload');
 
 

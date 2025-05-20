@@ -84,19 +84,38 @@ class CartController extends Controller
     public function viewCart()
     {
         $cart = session()->get('cart', []);
+
+        \Log::debug('Isi cart dari session:', $cart); // debug awal
+
         $productForms = [];
 
         foreach ($cart as $productId => $item) {
-            $product = Product::find($productId);
+            $product = \App\Models\Product::with('approval')->find($productId);
+
+            \Log::debug("Cek produk ID $productId:", [
+                'product_found' => $product !== null,
+                'approval' => $product?->approval,
+                'is_custom_form' => $product?->approval?->is_custom_form ?? false,
+            ]);
 
             if ($product && $product->approval && $product->approval->is_custom_form) {
-                $fields = CustomForm::where('product_id', $productId)->get();
+                $fields = \App\Models\CustomForm::where('product_id', $productId)->get();
+
+                \Log::debug("Custom form ditemukan untuk produk ID $productId:", $fields->toArray());
+
                 $productForms[$productId] = $fields;
             }
         }
 
+        // FINAL DEBUG OUTPUT
+        \Log::debug('Data productForms yang dikirim ke view:', [
+            'productForms' => $productForms,
+        ]);
+
         return view('customer.cart', compact('cart', 'productForms'));
     }
+
+
 
     public function view()
     {
