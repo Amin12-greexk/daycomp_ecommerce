@@ -4,11 +4,6 @@
 <div class="max-w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Daftar Pesanan</h1>
-        <!-- 
-        <a href="#" class="inline-flex items-center px-4 py-2 bg-sky-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-sky-700 active:bg-sky-800 focus:outline-none focus:border-sky-800 focus:ring focus:ring-sky-300 disabled:opacity-25 transition">
-            Buat Pesanan Baru
-        </a>
-        -->
     </div>
 
     @if(session('success'))
@@ -75,10 +70,19 @@
                             </td>
                             <td class="py-4 px-4 sm:px-6 text-slate-600 whitespace-nowrap">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
                             <td class="py-4 px-4 sm:px-6 text-center whitespace-nowrap">
-                                <a href="{{ route('admin.orders.show', $order->id) }}"
-                                   class="inline-flex items-center px-3.5 py-2 border border-transparent text-xs font-medium rounded-lg shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-150">
-                                    Lihat Detail
-                                </a>
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('admin.orders.show', $order->id) }}"
+                                       class="inline-flex items-center px-3.5 py-2 border border-transparent text-xs font-medium rounded-lg shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-150">
+                                        Lihat Detail
+                                    </a>
+                                    <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini? Aksi ini tidak dapat dibatalkan.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center px-3.5 py-2 border border-transparent text-xs font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-150">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -100,7 +104,9 @@
 
         @if ($orders instanceof \Illuminate\Pagination\AbstractPaginator && $orders->hasPages())
             <div class="mt-8">
-                {{ $orders->links() }} </div>
+                {{ $orders->appends(request()->query())->links() }}
+            </div>
         @endif
     </div>
+</div>
 @endsection

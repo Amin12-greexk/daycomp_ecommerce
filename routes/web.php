@@ -35,7 +35,8 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/checkout/cache', [CheckoutController::class, 'cacheForm'])->name('checkout.cache');
     Route::get('/orders/{order}/resi', [OrderController::class, 'Resi'])->name('orders.Resi');
     Route::get('/orders/{order}/custom-form', [OrderController::class, 'downloadCustomForm'])->name('orders.downloadCustomForm');
-
+    Route::get('/products/check-new', [DashboardController::class, 'checkForNewProducts'])->name('admin.products.check_new');
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('admin.orders.destroy');
 });
 Route::post('/checkout/cache', [CheckoutController::class, 'cacheForm'])->name('checkout.cache');
 Route::post('/products/{approval_id}/toggle-custom-form', [ProductController::class, 'toggleCustomForm'])->name('admin.products.toggleCustomForm');

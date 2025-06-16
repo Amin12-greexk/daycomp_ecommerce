@@ -91,7 +91,31 @@ class OrderController extends Controller
         $pdf = Pdf::loadView('admin.orders.pdf.custom_form', compact('order'));
         return $pdf->download("formulir_{$order->resi_code}.pdf");
     }
+    public function destroy(Order $order)
+    {
+        try {
+            // It's good practice to delete related records first.
+            // This requires the 'items' and 'details' relationships to be defined in the Order model.
+            if (method_exists($order, 'items')) {
+                $order->items()->delete();
+            }
+            if (method_exists($order, 'details')) {
+                $order->details()->delete();
+            }
 
+            // Now, delete the order itself.
+            $order->delete();
+
+            return redirect()->route('admin.orders.index')->with('success', 'Order has been deleted successfully.');
+
+        } catch (\Exception $e) {
+            // Log the specific error to the laravel.log file
+            Log::error('Failed to delete order #' . $order->id . ': ' . $e->getMessage());
+
+            // Return a user-friendly error message
+            return redirect()->route('admin.orders.index')->with('error', 'Failed to delete the order. Please check the logs for more details.');
+        }
+    }
 
 
 }
