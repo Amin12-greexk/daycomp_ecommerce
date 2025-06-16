@@ -71,43 +71,60 @@
 </div>
 
 <!-- Modal -->
-<div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
-        <h2 class="text-2xl font-bold mb-4 text-center">Formulir Pemesanan</h2>
+<div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start overflow-y-auto p-4 md:p-10 hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl flex flex-col" style="max-height: 90vh;">
 
-        <form id="custom-form" method="POST" action="{{ route('checkout.cache') }}" enctype="multipart/form-data">
-            @csrf
-            @foreach ($cart as $productId => $item)
-                @if (isset($productForms[$productId]))
-                    <h3 class="text-lg font-bold mt-4">{{ $item['product_name'] }}</h3>
-                    @foreach ($productForms[$productId] as $field)
-                        <div class="mb-4">
-                            <label class="block text-gray-700 mb-2">{{ $field->field_label }}</label>
-                            @if ($field->field_type == 'text')
-                                <input type="text" name="custom_form[{{ $productId }}][{{ $field->id }}]"
-                                       class="w-full border px-3 py-2 rounded" {{ $field->is_required ? 'required' : '' }}>
-                            @elseif ($field->field_type == 'date')
-                                <input type="date" name="custom_form[{{ $productId }}][{{ $field->id }}]"
-                                       class="w-full border px-3 py-2 rounded" {{ $field->is_required ? 'required' : '' }}>
-                            @elseif ($field->field_type == 'file')
-                                <input type="file" name="custom_form[{{ $productId }}][{{ $field->id }}]"
-                                       class="w-full" {{ $field->is_required ? 'required' : '' }}>
-                            @endif
-                        </div>
-                    @endforeach
-                @endif
-            @endforeach
-            <div class="flex justify-end space-x-2 mt-6">
+        <div class="p-6 border-b">
+            <h2 class="text-2xl font-bold text-center">Formulir Pemesanan</h2>
+        </div>
+
+        <div class="p-6 overflow-y-auto">
+            <form id="custom-form" method="POST" action="{{ route('checkout.cache') }}" enctype="multipart/form-data">
+                @csrf
+                @foreach ($cart as $productId => $item)
+                    @if (isset($productForms[$productId]))
+                        <h3 class="text-lg font-bold mt-4 first:mt-0">{{ $item['product_name'] }}</h3>
+                        @foreach ($productForms[$productId] as $field)
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2">
+                                    {{ $field->field_label }}
+                                    @if($field->is_required)
+                                        <span class="text-red-500">*</span>
+                                    @endif
+                                </label>
+                                @if ($field->field_type == 'text')
+                                    <input type="text" name="custom_form[{{ $productId }}][{{ $field->id }}]"
+                                           class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" {{ $field->is_required ? 'required' : '' }}>
+                                @elseif ($field->field_type == 'date')
+                                    <input type="date" name="custom_form[{{ $productId }}][{{ $field->id }}]"
+                                           class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500" {{ $field->is_required ? 'required' : '' }}>
+                                @elseif ($field->field_type == 'file')
+                                    <input type="file" name="custom_form[{{ $productId }}][{{ $field->id }}]"
+                                           class="w-full" {{ $field->is_required ? 'required' : '' }}>
+                                @endif
+                            </div>
+                        @endforeach
+                        @if(!$loop->last)
+                            <hr class="my-6">
+                        @endif
+                    @endif
+                @endforeach
+            </form>
+        </div>
+
+        <div class="p-6 border-t bg-gray-50 rounded-b-lg">
+             <div class="flex justify-end space-x-2">
                 <button type="button" id="cancel-button"
                         class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
                     Batal
                 </button>
-                <button type="submit"
+                <button type="submit" form="custom-form"
                         class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded text-center">
                     Lanjutkan Pembayaran
                 </button>
             </div>
-        </form>
+        </div>
+
     </div>
 </div>
 @endsection

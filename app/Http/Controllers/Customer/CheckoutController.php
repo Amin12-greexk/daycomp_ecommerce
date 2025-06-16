@@ -50,6 +50,7 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
@@ -70,7 +71,7 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-            $resi_code = 'INV-' . strtoupper(Str::random(10));
+            $resi_code = 'DCMP-INV' . strtoupper(Str::random(10));
 
             $order = Order::create([
                 'resi_code' => $resi_code,
@@ -275,39 +276,4 @@ class CheckoutController extends Controller
         }
         return $total;
     }
-
-    public function testUpload(Request $request)
-    {
-        if ($request->hasFile('test_image')) {
-            $file = $request->file('test_image');
-
-            $imageName = $file->getClientOriginalName();
-            $mimeType = $file->getMimeType();
-
-            $sanityProjectId = env('SANITY_PROJECT_ID');
-            $sanityDataset = env('SANITY_DATASET');
-            $sanityToken = env('SANITY_API_TOKEN');
-
-            $uploadUrl = "https://{$sanityProjectId}.api.sanity.io/v2021-06-07/assets/images/{$sanityDataset}?filename=" . urlencode($imageName);
-
-            $response = Http::withToken($sanityToken)
-                ->withHeaders(['Content-Type' => $mimeType])
-                ->send('POST', $uploadUrl, [
-                    'body' => file_get_contents($file->getRealPath())
-                ]);
-
-            if ($response->successful()) {
-                Log::info('🟢 TEST SANITY SUKSES: ', $response->json());
-                return back()->with('success', 'Upload ke Sanity berhasil!');
-            } else {
-                Log::error('🔴 GAGAL TEST SANITY: ', ['status' => $response->status(), 'body' => $response->body()]);
-                return back()->with('error', 'Gagal upload ke Sanity!');
-            }
-        }
-
-        return back()->with('error', 'Tidak ada file dipilih.');
-    }
-
-
-
 }

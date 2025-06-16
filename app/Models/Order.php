@@ -13,6 +13,7 @@ class Order extends Model
         'resi_code',
         'status',
         'total_price',
+        'payment_method',
         'name',
         'phone',
         'address',

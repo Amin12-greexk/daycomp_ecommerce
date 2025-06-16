@@ -50,7 +50,7 @@ Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders.ind
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
 Route::post('/orders/{order}/update-status', [OrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
 Route::get('/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
-Route::post('/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
+Route::patch('/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
 Route::get('/checkout', [CheckoutController::class, 'view'])->name('checkout.view');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/thank-you/{order}', [App\Http\Controllers\Customer\ThankYouController::class, 'show'])->name('thankyou');

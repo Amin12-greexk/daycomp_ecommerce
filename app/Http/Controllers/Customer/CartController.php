@@ -115,22 +115,4 @@ class CartController extends Controller
         return view('customer.cart', compact('cart', 'productForms'));
     }
 
-
-
-    public function view()
-    {
-        $cart = session()->get('cart', []);
-        $productForms = [];
-
-        foreach ($cart as $productId => $item) {
-            $product = Product::find($productId);
-            if ($product && $product->approval && $product->approval->is_custom_form) {
-                $fields = CustomForm::where('product_id', $productId)->get();
-                $productForms[$productId] = $fields;
-            }
-        }
-
-        return view('customer.checkout', compact('cart', 'productForms'));
-    }
-
 }
