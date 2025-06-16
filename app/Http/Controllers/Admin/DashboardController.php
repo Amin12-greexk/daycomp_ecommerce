@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\DiscountTier;
-use Illuminate\Http\Request; // Import the Request class
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf; // Pastikan Anda mengimpor PDF Facade
 
 class DashboardController extends Controller
 {
@@ -18,38 +19,87 @@ class DashboardController extends Controller
         $totalOrders = Order::count();
         $totalDiscounts = DiscountTier::count();
 
-        // Get the timestamp of the latest product for the initial check
         $lastProductTimestamp = Product::latest()->first()?->created_at->toIso8601String();
 
         return view('admin.dashboard', compact('totalProducts', 'totalOrders', 'totalDiscounts', 'lastProductTimestamp'));
     }
 
     /**
-     * Check for new products since the last timestamp.
-     * This method will be called by JavaScript.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * Metode publik yang dipanggil oleh rute untuk menghasilkan dan mengunduh laporan PDF.
+     * @param Request $request
+     * @return \Illuminate\Http\Response
      */
+    public function downloadReport(Request $request)
+    {
+        // Ambil data ringkasan
+        $totalProducts = Product::count();
+        $totalOrders = Order::count();
+        $totalDiscounts = DiscountTier::count();
+
+        // Ambil data penjualan untuk tahun ini (atau tahun yang dipilih)
+        $year = $request->input('year', now()->year);
+        $salesData = $this->getMonthlySalesData($year);
+
+        // Siapkan data untuk tampilan PDF
+        $dataForPdf = [
+            'totalProducts' => $totalProducts,
+            'totalOrders' => $totalOrders,
+            'totalDiscounts' => $totalDiscounts,
+            'salesData' => $salesData
+        ];
+
+        // Muat tampilan dan hasilkan PDF
+        $pdf = PDF::loadView('admin.pdf.dashboard_report', $dataForPdf);
+
+        // Unduh PDF dengan nama file yang sesuai
+        return $pdf->download('laporan-dasbor-' . date('Y-m-d') . '.pdf');
+    }
+
     public function checkForNewProducts(Request $request)
     {
-        // Get the last timestamp from the request, default to now if not provided
         $lastCheck = $request->input('since', now()->toIso8601String());
-
-        // Parse the timestamp safely
         try {
-            $since = Carbon::parse($lastCheck)->addSecond(); // Check for products created after this time
+            $since = Carbon::parse($lastCheck)->addSecond();
         } catch (\Exception $e) {
             $since = now();
         }
-
-        // Find any products created after the 'since' timestamp
         $newProducts = Product::where('created_at', '>=', $since)->get();
-
-        // Return the new products and the latest timestamp for the next check
         return response()->json([
             'newProducts' => $newProducts,
             'latestTimestamp' => Product::latest()->first()?->created_at->toIso8601String() ?? now()->toIso8601String()
         ]);
+    }
+
+    /**
+     * Metode privat untuk mengambil dan memformat data penjualan bulanan.
+     * @param int $year
+     * @return array
+     */
+    private function getMonthlySalesData(int $year): array
+    {
+        // Atur locale Carbon ke Bahasa Indonesia
+        Carbon::setLocale('id');
+
+        $salesByMonth = DB::table('order_details')
+            ->join('orders', 'orders.id', '=', 'order_details.order_id')
+            ->whereYear('orders.created_at', $year)
+            ->selectRaw('MONTH(orders.created_at) as month, SUM(order_details.price * order_details.quantity) as total')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month');
+
+        $labels = [];
+        $data = [];
+        for ($i = 1; $i <= 12; $i++) {
+            // Menggunakan format Bahasa Indonesia untuk nama bulan
+            $labels[] = Carbon::create()->month($i)->isoFormat('MMMM');
+            $data[] = $salesByMonth[$i] ?? 0;
+        }
+
+        return [
+            'year' => $year,
+            'labels' => $labels,
+            'data' => $data,
+        ];
     }
 }

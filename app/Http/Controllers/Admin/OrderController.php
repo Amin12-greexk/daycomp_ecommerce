@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Mail\OrderApproved;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
