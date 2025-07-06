@@ -95,8 +95,6 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         try {
-            // It's good practice to delete related records first.
-            // This requires the 'items' and 'details' relationships to be defined in the Order model.
             if (method_exists($order, 'items')) {
                 $order->items()->delete();
             }

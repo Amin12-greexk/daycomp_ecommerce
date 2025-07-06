@@ -71,7 +71,7 @@
                         class="text-slate-600 hover:text-sky-600 px-3 py-2 rounded-md text-base font-medium transition-colors duration-150 {{ request()->is('category/1') ? 'nav-link-active font-semibold' : '' }}">Undangan</a>
                     <a href="{{ route('customer.category', 2) }}"
                         class="text-slate-600 hover:text-sky-600 px-3 py-2 rounded-md text-base font-medium transition-colors duration-150 {{ request()->is('category/2') ? 'nav-link-active font-semibold' : '' }}">Stiker</a>
-                    <a href="{{ route('customer.category', 3) }}"
+                    <a href="{{ route('customer.category', 6) }}"
                         class="text-slate-600 hover:text-sky-600 px-3 py-2 rounded-md text-base font-medium transition-colors duration-150 {{ request()->is('category/3') ? 'nav-link-active font-semibold' : '' }}">Cetak
                         Foto</a>
                 </div>

@@ -30,7 +30,7 @@ class DiscountTierController extends Controller
         $product->discountTiers()->create($request->all());
 
         return redirect()->route('admin.discount-tiers.index', $product->id)
-                         ->with('success', 'Discount tier added successfully.');
+            ->with('success', 'Discount tier added successfully.');
     }
 
     public function edit($id)
@@ -51,7 +51,7 @@ class DiscountTierController extends Controller
         $discountTier->update($request->all());
 
         return redirect()->route('admin.discount-tiers.index', $discountTier->product_id)
-                         ->with('success', 'Discount tier updated successfully.');
+            ->with('success', 'Discount tier updated successfully.');
     }
 
     public function destroy($id)

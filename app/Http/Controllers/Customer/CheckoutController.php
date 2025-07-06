@@ -19,7 +19,6 @@ class CheckoutController extends Controller
 {
     public function view()
     {
-
         $cart = session()->get('cart', []);
         if (empty($cart)) {
             return redirect()->route('customer.home')->with('error', 'Keranjang kosong.');
@@ -32,8 +31,6 @@ class CheckoutController extends Controller
             $product = \App\Models\Product::with('approval')->find($productId);
             if ($product && $product->approval && $product->approval->is_custom_form) {
                 $fields = \App\Models\CustomForm::where('product_id', $productId)->get();
-
-                // isikan value dari session jika ada
                 foreach ($fields as $field) {
                     $field->value = $prefilledData[$productId][$field->id] ?? null;
                 }
@@ -41,7 +38,6 @@ class CheckoutController extends Controller
                 $productForms[$productId] = $fields;
             }
         }
-
         return view('customer.checkout', [
             'cart' => $cart,
             'productForms' => $productForms,
