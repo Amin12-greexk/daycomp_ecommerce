@@ -19,9 +19,11 @@ class DashboardController extends Controller
         $totalOrders = Order::count();
         $totalDiscounts = DiscountTier::count();
 
-        $lastProductTimestamp = Product::latest()->first()?->created_at->toIso8601String();
-
-        return view('admin.dashboard', compact('totalProducts', 'totalOrders', 'totalDiscounts', 'lastProductTimestamp'));
+        return view('admin.dashboard', compact(
+            'totalProducts',
+            'totalOrders',
+            'totalDiscounts'
+        ));
     }
 
     /**

@@ -116,49 +116,51 @@
         <!-- Product Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             @forelse ($products as $product)
-                    <div class="bg-white shadow-md rounded-2xl overflow-hidden flex flex-col transition hover:shadow-lg hover:scale-[1.02] duration-200"
-                        data-aos="fade-up">
-                        <div class="relative group">
-                            <img src="{{ $product->image_url ?? asset('placeholder.jpg') }}" alt="{{ $product->product_name }}"
-                                class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-                                onclick="showImageModal('{{ $product->image_url ?? asset('placeholder.jpg') }}')">
-                        </div>
-
-                        <div class="p-5 flex flex-col h-full">
-                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">{{ $product->product_name }}</h3>
-                            <p class="text-blue-600 font-semibold text-base mb-2">
-                                Rp {{ number_format($product->approval->custom_price, 0, ',', '.') }}
-                            </p>
-                            <p class="text-sm text-gray-500 mb-3">
-                                Minimal beli: <span class="font-medium text-gray-700">{{ $product->approval->minimum_quantity }}
-                                    pcs</span>
-                            </p>
-
-                            @php
-                                $discountTiers = $product->discountTiers->sortBy('min_quantity');
-                            @endphp
-                            @if($discountTiers->count() > 0)
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    @foreach($discountTiers as $tier)
-                                        <span class="text-xs font-medium bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
-                                            Beli {{ $tier->min_quantity }}+ → Diskon {{ $tier->discount_percentage }}%
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            <form id="add-to-cart-form-{{ $product->id }}" action="{{ route('cart.add') }}" method="POST"
-                                class="mt-auto">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <input type="hidden" name="quantity" value="1">
-                                <button type="submit"
-                                    class="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm font-semibold px-4 py-2 rounded-md shadow hover:brightness-110 transition">
-                                    <i class="fas fa-cart-plus mr-2"></i> Tambah ke Keranjang
-                                </button>
-                            </form>
-                        </div>
+                <div class="bg-white shadow-md rounded-2xl overflow-hidden flex flex-col transition hover:shadow-lg hover:scale-[1.02] duration-200"
+                    data-aos="fade-up">
+                    <div class="relative group">
+                        <img src="{{ $product->image_url ?? asset('placeholder.jpg') }}" alt="{{ $product->product_name }}"
+                            class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+                            onclick="showImageModal('{{ $product->image_url ?? asset('placeholder.jpg') }}')">
                     </div>
+
+                    <div class="p-5 flex flex-col h-full">
+                        <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">{{ $product->product_name }}</h3>
+
+                        <!-- THE FIX: Use sale_price directly from the product -->
+                        <p class="text-blue-600 font-semibold text-base mb-2">
+                            Rp {{ number_format($product->sale_price, 0, ',', '.') }}
+                        </p>
+
+                        <!-- THE FIX: Use minimum_quantity directly from the product -->
+                        <p class="text-sm text-gray-500 mb-3">
+                            Minimal beli: <span class="font-medium text-gray-700">{{ $product->minimum_quantity }}
+                                pcs</span>
+                        </p>
+
+                        <!-- This will now work correctly because the controller is eager-loading it -->
+                        @if($product->discountTiers && $product->discountTiers->count() > 0)
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                @foreach($product->discountTiers->sortBy('min_quantity') as $tier)
+                                    <span class="text-xs font-medium bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
+                                        Beli {{ $tier->min_quantity }}+ → Diskon {{ $tier->discount_percentage }}%
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <form id="add-to-cart-form-{{ $product->id }}" action="{{ route('cart.add') }}" method="POST"
+                            class="mt-auto">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit"
+                                class="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm font-semibold px-4 py-2 rounded-md shadow hover:brightness-110 transition">
+                                <i class="fas fa-cart-plus mr-2"></i> Tambah ke Keranjang
+                            </button>
+                        </form>
+                    </div>
+                </div>
             @empty
                 <div class="col-span-3 text-center text-gray-500">Tidak ada produk ditemukan.</div>
             @endforelse

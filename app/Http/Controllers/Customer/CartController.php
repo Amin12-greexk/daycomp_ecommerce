@@ -5,44 +5,57 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\ProductApproval;
 use App\Models\DiscountTier;
-use App\Models\CustomForm; // 🔥 don't forget to import CustomForm model
+use App\Models\CustomForm;
 
 class CartController extends Controller
 {
-    // Add product to Cart (AJAX)
+    /**
+     * Add a product to the cart via AJAX.
+     */
     public function add(Request $request)
     {
-        $product = Product::findOrFail($request->product_id);
-        $approval = ProductApproval::where('product_id', $product->id)->first();
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
 
-        $quantity = max((int) $request->quantity, $approval->minimum_quantity);
+        $product = Product::findOrFail($request->product_id);
+
+        // Ensure quantity meets the product's minimum requirement
+        $quantity = max((int) $request->quantity, $product->minimum_quantity);
 
         $cart = session()->get('cart', []);
 
         if (isset($cart[$product->id])) {
             $cart[$product->id]['quantity'] += $quantity;
         } else {
+            // Get all data directly from the Product model
             $cart[$product->id] = [
+                // THE FIX: Use 'product_name' to match your Blade view
                 'product_name' => $product->product_name,
-                'price' => $approval->custom_price,
+                'price' => $product->sale_price,
                 'quantity' => $quantity,
-                'minimum_quantity' => $approval->minimum_quantity,
-                'discount_percentage' => 0,
-                'is_custom_form' => $approval->is_custom_form,
+                'minimum_quantity' => $product->minimum_quantity,
+                'image' => $product->image_url,
+                'is_custom_form' => $product->is_custom_form,
+                'discount_percentage' => 0, // Default discount
             ];
         }
 
         session()->put('cart', $cart);
 
+        // Return the JSON response the frontend script expects
         return response()->json([
-            'message' => 'Product added to cart',
-            'cart_count' => count($cart),
+            'success' => true,
+            'message' => 'Product added to cart successfully!',
+            'cart_count' => count(session('cart'))
         ]);
     }
 
-    // Update quantity in Cart (AJAX)
+    /**
+     * Update quantity in Cart via AJAX.
+     */
     public function update(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -67,7 +80,9 @@ class CartController extends Controller
         ]);
     }
 
-    // Remove product from Cart (NORMAL FORM POST)
+    /**
+     * Remove product from Cart.
+     */
     public function remove(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -80,39 +95,26 @@ class CartController extends Controller
         return redirect()->route('cart.view')->with('success', 'Produk berhasil dihapus dari keranjang.');
     }
 
-    // View Cart Page (LOAD custom forms if needed)
+    /**
+     * Display the cart page.
+     */
     public function viewCart()
     {
         $cart = session()->get('cart', []);
-
-        \Log::debug('Isi cart dari session:', $cart); // debug awal
-
         $productForms = [];
 
         foreach ($cart as $productId => $item) {
-            $product = \App\Models\Product::with('approval')->find($productId);
+            // Find the product in our local e-commerce database
+            $product = Product::find($productId);
 
-            \Log::debug("Cek produk ID $productId:", [
-                'product_found' => $product !== null,
-                'approval' => $product?->approval,
-                'is_custom_form' => $product?->approval?->is_custom_form ?? false,
-            ]);
-
-            if ($product && $product->approval && $product->approval->is_custom_form) {
-                $fields = \App\Models\CustomForm::where('product_id', $productId)->get();
-
-                \Log::debug("Custom form ditemukan untuk produk ID $productId:", $fields->toArray());
-
-                $productForms[$productId] = $fields;
+            // Check if the product exists and requires a custom form
+            if ($product && $product->is_custom_form) {
+                $productForms[$productId] = CustomForm::where('product_id', $productId)->orderBy('field_order')->get();
             }
         }
 
-        // FINAL DEBUG OUTPUT
-        \Log::debug('Data productForms yang dikirim ke view:', [
-            'productForms' => $productForms,
-        ]);
-
+        // THE FIX: Use 'customer.cart' to match your likely view path
         return view('customer.cart', compact('cart', 'productForms'));
     }
-
 }
+

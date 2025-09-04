@@ -7,7 +7,8 @@
             <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Kelola Form Kustom</h1>
             <p class="text-sm text-slate-600 mt-1">Untuk Produk: <span class="font-semibold text-sky-700">{{ $product->product_name }}</span></p>
         </div>
-        <a href="{{ route('admin.custom-forms.create', $product->id) }}" 
+        <!-- THE FIX: Use the correct nested route name -->
+        <a href="{{ route('admin.products.custom-forms.create', $product->id) }}" 
            class="inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-150">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />

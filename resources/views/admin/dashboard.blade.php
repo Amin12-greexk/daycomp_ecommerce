@@ -4,17 +4,13 @@
 
     {{-- Menambahkan Font Awesome untuk ikon yang digunakan di kartu --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <div class="space-y-10 p-4 md:p-6 lg:p-8">
         <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
             <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Ringkasan Dasbor</h1>
             <div class="flex items-center gap-2">
-                <button id="request-permission"
-                    class="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 hidden transition-opacity duration-300">
-                    Aktifkan Notifikasi
-                </button>
                 <a href="{{ route('admin.dashboard.download_report') }}"
                     class="inline-flex items-center px-4 py-2 bg-slate-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-slate-700 active:bg-slate-800 focus:outline-none focus:border-slate-800 focus:ring focus:ring-slate-300 disabled:opacity-25 transition">
                     <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -25,9 +21,6 @@
                     Cetak Laporan
                 </a>
             </div>
-        </div>
-
-        <div id="new-product-alert" class="hidden p-4 mb-4 text-sm text-green-800 bg-green-100 rounded-lg" role="alert">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -105,70 +98,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
-            // --- LOGIKA NOTIFIKASI ---
-            let lastCheckTimestamp = "{{ $lastProductTimestamp ?? now()->toIso8601String() }}";
-            const permissionButton = document.getElementById('request-permission');
-            const newProductAlert = document.getElementById('new-product-alert');
-
-            function showNotification(product) {
-                if (Notification.permission === "granted") {
-                    new Notification('Produk Baru di Gudang!', {
-                        body: `Produk: ${product.product_name}`,
-                        icon: "https://placehold.co/48x48/3B82F6/FFFFFF?text=i"
-                    });
-                }
-                newProductAlert.innerHTML = `<span class="font-medium">Produk baru ditambahkan!</span> Nama: ${product.product_name}. <a href="{{ route('admin.products.index') }}" class="font-semibold underline hover:no-underline">Lihat daftar produk.</a>`;
-                newProductAlert.classList.remove('hidden');
-            }
-
-            function checkForNewProducts() {
-                const url = `{{ route('admin.products.check_new') }}?since=${encodeURIComponent(lastCheckTimestamp)}`;
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.latestTimestamp) {
-                            lastCheckTimestamp = data.latestTimestamp;
-                        }
-                        if (data.newProducts && data.newProducts.length > 0) {
-                            data.newProducts.forEach(product => {
-                                showNotification(product);
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error polling for new products:', error));
-            }
-
-            function startPolling() {
-                setInterval(checkForNewProducts, 15000);
-            }
-
-            function handleNotificationPermission() {
-                if (!("Notification" in window)) {
-                    console.log("Browser ini tidak mendukung notifikasi desktop.");
-                } else if (Notification.permission === "granted") {
-                    startPolling();
-                } else if (Notification.permission !== "denied") {
-                    permissionButton.classList.remove('hidden');
-                    permissionButton.onclick = function () {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === "granted") {
-                                new Notification("Notifikasi Diaktifkan!", {
-                                    body: "Anda akan diberitahu jika ada produk baru."
-                                });
-                                permissionButton.classList.add('hidden');
-                                startPolling();
-                            }
-                        });
-                    };
-                }
-            }
-
-            handleNotificationPermission();
-
             // --- LOGIKA BAGAN (CHART) ---
             const yearSelect = document.getElementById('year-select');
             const canvasElement = document.getElementById('salesChart');

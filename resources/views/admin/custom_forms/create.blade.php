@@ -8,7 +8,8 @@
                 <p class="text-sm text-slate-600 mt-1">Untuk Produk: <span
                         class="font-semibold text-sky-700">{{ $product->product_name }}</span></p>
             </div>
-            <a href="{{ route('admin.custom-forms.index', $product->id) }}"
+            <!-- THE FIX: Use the correct nested route name -->
+            <a href="{{ route('admin.products.custom-forms.index', $product->id) }}"
                 class="inline-flex items-center justify-center px-4 py-2.5 border border-slate-300 text-sm font-medium rounded-lg shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-150">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-slate-500" viewBox="0 0 20 20"
                     fill="currentColor">
@@ -32,7 +33,8 @@
         @endif
 
         <div class="bg-white shadow-xl rounded-lg p-6 sm:p-8">
-            <form action="{{ route('admin.custom-forms.store', $product->id) }}" method="POST" class="space-y-6">
+            <!-- THE FIX: Use the correct nested route name for the form action -->
+            <form action="{{ route('admin.products.custom-forms.store', $product->id) }}" method="POST" class="space-y-6">
                 @csrf
 
                 <div>
@@ -52,22 +54,7 @@
                         <option value="date" {{ old('field_type') == 'date' ? 'selected' : '' }}>Date</option>
                         <option value="time" {{ old('field_type') == 'time' ? 'selected' : '' }}>Time</option>
                         <option value="file" {{ old('field_type') == 'file' ? 'selected' : '' }}>File Upload</option>
-                        <option value="select" {{ old('field_type') == 'select' ? 'selected' : '' }}>Select (Dropdown)
-                        </option>
-                        <option value="checkbox" {{ old('field_type') == 'checkbox' ? 'selected' : '' }}>Checkbox</option>
-                        <option value="radio" {{ old('field_type') == 'radio' ? 'selected' : '' }}>Radio Button</option>
                     </select>
-                </div>
-
-                <div id="options_container"
-                    class="{{ in_array(old('field_type'), ['select', 'checkbox', 'radio']) ? '' : 'hidden' }}">
-                    <label for="field_options" class="block text-sm font-medium text-slate-700 mb-1">Opsi (pisahkan dengan
-                        koma)</label>
-                    <textarea name="field_options" id="field_options" rows="3"
-                        class="block w-full border-slate-300 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm px-3 py-2.5"
-                        placeholder="Contoh: Opsi 1,Opsi 2,Opsi 3">{{ old('field_options') }}</textarea>
-                    <p class="mt-1 text-xs text-slate-500">Hanya diperlukan untuk tipe field Select, Checkbox, atau Radio.
-                    </p>
                 </div>
 
                 <div>
@@ -103,27 +90,3 @@
         </div>
     </div>
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const fieldTypeSelect = document.getElementById('field_type');
-            const optionsContainer = document.getElementById('options_container');
-            const optionTypes = ['select', 'checkbox', 'radio'];
-
-            function toggleOptionsVisibility() {
-                if (optionTypes.includes(fieldTypeSelect.value)) {
-                    optionsContainer.classList.remove('hidden');
-                } else {
-                    optionsContainer.classList.add('hidden');
-                }
-            }
-
-            // Initial check
-            toggleOptionsVisibility();
-
-            // Event listener for changes
-            fieldTypeSelect.addEventListener('change', toggleOptionsVisibility);
-        });
-    </script>
-@endpush
